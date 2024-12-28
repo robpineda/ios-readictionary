@@ -18,7 +18,6 @@
 		22934B372D1ED8510059681F /* PDFKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B362D1ED8510059681F /* PDFKitView.swift */; };
 		22934B3E2D202F650059681F /* TranslatedWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B3D2D202F650059681F /* TranslatedWord.swift */; };
 		22934B402D202FA70059681F /* TranslatedWordRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B3F2D202FA70059681F /* TranslatedWordRow.swift */; };
-		22934B422D204E220059681F /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B412D204E220059681F /* Config.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,7 +33,6 @@
 		22934B362D1ED8510059681F /* PDFKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKitView.swift; sourceTree = "<group>"; };
 		22934B3D2D202F650059681F /* TranslatedWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedWord.swift; sourceTree = "<group>"; };
 		22934B3F2D202FA70059681F /* TranslatedWordRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedWordRow.swift; sourceTree = "<group>"; };
-		22934B412D204E220059681F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,7 +92,6 @@
 				22934B362D1ED8510059681F /* PDFKitView.swift */,
 				22934B3D2D202F650059681F /* TranslatedWord.swift */,
 				22934B3F2D202FA70059681F /* TranslatedWordRow.swift */,
-				22934B412D204E220059681F /* Config.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -179,7 +176,6 @@
 				222EB28F2D1E9BD200524C55 /* ContentView.swift in Sources */,
 				222EB29F2D1EBB2900524C55 /* DocumentPicker.swift in Sources */,
 				22934B3E2D202F650059681F /* TranslatedWord.swift in Sources */,
-				22934B422D204E220059681F /* Config.swift in Sources */,
 				22934B332D1ED7F40059681F /* DictionaryView.swift in Sources */,
 				222EB28D2D1E9BD200524C55 /* ReadictionaryApp.swift in Sources */,
 			);
