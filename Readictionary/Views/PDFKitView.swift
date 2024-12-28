@@ -10,20 +10,19 @@ import PDFKit
 
 struct PDFKitView: UIViewRepresentable {
     let url: URL
-    @Binding var currentPageText: String // Text from the current page
+    @Binding var translatedWords: [TranslatedWord]
+    var sourceLanguage: Language
+    var targetLanguage: Language
 
     func makeUIView(context: Context) -> PDFView {
         let pdfView = PDFView()
         pdfView.document = PDFDocument(url: url)
         pdfView.autoScales = true
-        pdfView.delegate = context.coordinator
 
-        // Extract text from the first page as soon as the document is loaded
-        if let firstPage = pdfView.document?.page(at: 0) {
-            let text = getText(from: firstPage)
-            DispatchQueue.main.async {
-                self.currentPageText = text
-            }
+        // Extract text from the PDF
+        if let pdfDocument = pdfView.document {
+            let extractedText = extractText(from: pdfDocument)
+            translateText(extractedText, sourceLanguage: sourceLanguage, targetLanguage: targetLanguage)
         }
 
         return pdfView
@@ -31,31 +30,111 @@ struct PDFKitView: UIViewRepresentable {
 
     func updateUIView(_ uiView: PDFView, context: Context) {}
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(self)
-    }
-
-    class Coordinator: NSObject, PDFViewDelegate {
-        var parent: PDFKitView
-
-        init(_ parent: PDFKitView) {
-            self.parent = parent
-        }
-
-        func pdfViewPageChanged(_ notification: Notification) {
-            // Extract text from the current page when the page changes
-            if let pdfView = notification.object as? PDFView {
-                let currentPageText = parent.getText(from: pdfView.currentPage)
-                DispatchQueue.main.async {
-                    self.parent.currentPageText = currentPageText
-                }
+    private func extractText(from pdfDocument: PDFDocument) -> String {
+        var fullText = ""
+        for i in 0..<pdfDocument.pageCount {
+            if let page = pdfDocument.page(at: i) {
+                fullText += page.string ?? ""
             }
         }
+        return fullText
     }
 
-    // Move the getText method here
-    private func getText(from page: PDFPage?) -> String {
-        guard let page = page else { return "" }
-        return page.string ?? ""
+    private func translateText(_ text: String, sourceLanguage: Language, targetLanguage: Language) {
+        let apiKey = Config.apiKey
+        let url = URL(string: "https://api.deepseek.com/v1/chat/completions")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        // Define the request body
+        let requestBody: [String: Any] = [
+            "model": "deepseek-chat", // Specify the model
+            "messages": [
+                [
+                    "role": "system",
+                    "content": "You are a helpful translator. Analyze and translate the following text the way it should be read, respecting compound words. Omit particles and other symbols. For japanese, translate each word with the format as: [original text], [hiragana], [romaji]\ndefinition 1, definition 2, definition 3. In other languages, format as: [original text], [transliteration (if applicable)]\n definition 1, definition 2, definition 3. For each word, provide the best possible translations according to the context of the text, with the most accurate at the top of the definitions list."
+                ],
+                [
+                    "role": "user",
+                    "content": text // The text to translate
+                ]
+            ],
+            "stream": false // Set to true if you want a stream response
+        ]
+
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+        } catch {
+            print("Error encoding request body: \(error)")
+            return
+        }
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error: \(error)")
+                return
+            }
+
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+
+            do {
+                // Parse the response
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                   let choices = json["choices"] as? [[String: Any]],
+                   let message = choices.first?["message"] as? [String: Any],
+                   let content = message["content"] as? String {
+                    // Process the translated content
+                    let translatedWords = parseTranslatedContent(content, sourceLanguage: sourceLanguage)
+                    DispatchQueue.main.async {
+                        self.translatedWords = translatedWords
+                    }
+                }
+            } catch {
+                print("Error decoding response: \(error)")
+            }
+        }
+        task.resume()
+    }
+
+    private func parseTranslatedContent(_ content: String, sourceLanguage: Language) -> [TranslatedWord] {
+        var translatedWords: [TranslatedWord] = []
+        let entries = content.components(separatedBy: "\n\n") // Split into individual word entries
+
+        for entry in entries {
+            if entry.isEmpty { continue }
+
+            // Split the entry into lines
+            let lines = entry.components(separatedBy: "\n")
+            guard lines.count >= 2 else { continue }
+
+            // Parse the first line: [original text], [hiragana], [romaji]
+            let wordInfo = lines[0].components(separatedBy: ", ")
+            guard wordInfo.count >= 3 else { continue }
+
+            let originalText = wordInfo[0]
+            let transliteration = wordInfo[1] // Hiragana
+            let romaji = wordInfo[2] // Romaji
+
+            // Parse the second line: Definition 1, Definition 2, Definition 3
+            let definitions = lines[1].components(separatedBy: ", ")
+                .map { $0.replacingOccurrences(of: "^[0-9]+\\. ", with: "", options: .regularExpression) }
+
+            // Create a TranslatedWord object
+            let word = TranslatedWord(
+                originalText: originalText,
+                transliteration: transliteration,
+                romaji: romaji,
+                definitions: definitions,
+                language: sourceLanguage
+            )
+            translatedWords.append(word)
+        }
+
+        return translatedWords
     }
 }

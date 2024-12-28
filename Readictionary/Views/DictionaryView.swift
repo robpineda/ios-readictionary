@@ -10,56 +10,66 @@ import SwiftUI
 struct DictionaryView: View {
     @Binding var height: CGFloat
     @Binding var isDragging: Bool
-    var dictionaryEntries: [JapaneseDictionaryEntry]
+    var translatedWords: [TranslatedWord] // Use TranslatedWord
     @Binding var highlightedWord: String?
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             // Drag handle
-            RoundedRectangle(cornerRadius: 3)
-                .frame(width: 40, height: 6)
-                .foregroundColor(.gray)
-                .padding(.top, 8)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            // Update the height of the dictionary view based on drag
-                            let newHeight = max(100, min(UIScreen.main.bounds.height / 2, height - value.translation.height))
-                            height = newHeight
-                            isDragging = true
-                        }
-                        .onEnded { _ in
-                            isDragging = false
-                        }
-                )
+            DragHandle(height: $height, isDragging: $isDragging)
 
             // Dictionary List View
             List {
-                ForEach(dictionaryEntries) { entry in
-                    VStack(alignment: .leading, spacing: 4) {
-                        // Display kanji and hiragana
-                        if let kanji = entry.kanji {
-                            Text("\(kanji), \(entry.hiragana)")
-                                .font(.headline)
-                        } else {
-                            Text(entry.hiragana)
-                                .font(.headline)
-                        }
-
-                        // Display English meanings
-                        ForEach(entry.englishMeanings.indices, id: \.self) { index in
-                            Text("\(index + 1). \(entry.englishMeanings[index])")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                        }
-                    }
-                    .padding(.vertical, 4)
+                ForEach(translatedWords) { word in
+                    TranslatedWordRow(
+                        word: word,
+                        isHighlighted: word.originalText == highlightedWord
+                    )
                 }
             }
             .listStyle(PlainListStyle())
+            .onChange(of: highlightedWord) { newWord in
+                // Scroll to the highlighted word
+                if let word = newWord,
+                   let index = translatedWords.firstIndex(where: { $0.originalText == word }) {
+                    ScrollViewReader { proxy in
+                        Color.clear
+                            .onAppear {
+                                proxy.scrollTo(index, anchor: .center)
+                            }
+                    }
+                }
+            }
         }
+        .frame(height: height) // Constrain the entire DictionaryView to the specified height
         .background(Color.white)
         .cornerRadius(10)
         .shadow(radius: 5)
+    }
+}
+
+// MARK: - Drag Handle
+// DragHandle.swift
+
+struct DragHandle: View {
+    @Binding var height: CGFloat
+    @Binding var isDragging: Bool
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: 3)
+            .frame(width: 40, height: 6)
+            .foregroundColor(.gray)
+            .padding(.top, 8)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        let newHeight = max(100, min(UIScreen.main.bounds.height - 100, height - value.translation.height))
+                        height = newHeight
+                        isDragging = true
+                    }
+                    .onEnded { _ in
+                        isDragging = false
+                    }
+            )
     }
 }
