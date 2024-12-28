@@ -18,6 +18,7 @@
 		22934B372D1ED8510059681F /* PDFKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B362D1ED8510059681F /* PDFKitView.swift */; };
 		22934B3E2D202F650059681F /* TranslatedWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B3D2D202F650059681F /* TranslatedWord.swift */; };
 		22934B402D202FA70059681F /* TranslatedWordRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B3F2D202FA70059681F /* TranslatedWordRow.swift */; };
+		22934B442D20522B0059681F /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B432D20522B0059681F /* Config.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		22934B362D1ED8510059681F /* PDFKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKitView.swift; sourceTree = "<group>"; };
 		22934B3D2D202F650059681F /* TranslatedWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedWord.swift; sourceTree = "<group>"; };
 		22934B3F2D202FA70059681F /* TranslatedWordRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedWordRow.swift; sourceTree = "<group>"; };
+		22934B432D20522B0059681F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +94,7 @@
 				22934B362D1ED8510059681F /* PDFKitView.swift */,
 				22934B3D2D202F650059681F /* TranslatedWord.swift */,
 				22934B3F2D202FA70059681F /* TranslatedWordRow.swift */,
+				22934B432D20522B0059681F /* Config.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -141,7 +144,6 @@
 			);
 			mainGroup = 222EB2802D1E9BD200524C55;
 			packageReferences = (
-				22934B3C2D1FF3600059681F /* XCRemoteSwiftPackageReference "fugashi" */,
 			);
 			productRefGroup = 222EB28A2D1E9BD200524C55 /* Products */;
 			projectDirPath = "";
@@ -176,6 +178,7 @@
 				222EB28F2D1E9BD200524C55 /* ContentView.swift in Sources */,
 				222EB29F2D1EBB2900524C55 /* DocumentPicker.swift in Sources */,
 				22934B3E2D202F650059681F /* TranslatedWord.swift in Sources */,
+				22934B442D20522B0059681F /* Config.swift in Sources */,
 				22934B332D1ED7F40059681F /* DictionaryView.swift in Sources */,
 				222EB28D2D1E9BD200524C55 /* ReadictionaryApp.swift in Sources */,
 			);
@@ -378,17 +381,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		22934B3C2D1FF3600059681F /* XCRemoteSwiftPackageReference "fugashi" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/polm/fugashi";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 222EB2812D1E9BD200524C55 /* Project object */;
 }
