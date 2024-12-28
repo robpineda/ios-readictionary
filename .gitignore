@@ -1,0 +1,15 @@
+# .gitignore
+
+# Xcode files
+.DS_Store
+*.xcuserstate
+*.xcworkspace
+*.xcodeproj
+xcuserdata/
+
+# Config files
+Config.swift
+
+# Dependencies
+Pods/
+Carthage/
