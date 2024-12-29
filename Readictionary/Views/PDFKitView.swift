@@ -11,7 +11,6 @@ import PDFKit
 struct PDFKitView: UIViewRepresentable {
     let url: URL
     @Binding var translatedWords: [TranslatedWord]
-    var sourceLanguage: Language
     var targetLanguage: Language
 
     func makeUIView(context: Context) -> PDFView {
@@ -22,7 +21,7 @@ struct PDFKitView: UIViewRepresentable {
         // Extract text from the PDF
         if let pdfDocument = pdfView.document {
             let extractedText = extractText(from: pdfDocument)
-            translateText(extractedText, sourceLanguage: sourceLanguage, targetLanguage: targetLanguage)
+            translateText(extractedText, targetLanguage: targetLanguage)
         }
 
         return pdfView
@@ -40,7 +39,7 @@ struct PDFKitView: UIViewRepresentable {
         return fullText
     }
 
-    private func translateText(_ text: String, sourceLanguage: Language, targetLanguage: Language) {
+    private func translateText(_ text: String, targetLanguage: Language) {
         let apiKey = Config.apiKey
         let url = URL(string: "https://api.deepseek.com/v1/chat/completions")!
         var request = URLRequest(url: url)
@@ -54,7 +53,7 @@ struct PDFKitView: UIViewRepresentable {
             "messages": [
                 [
                     "role": "system",
-                    "content": "You are a helpful translator. Analyze and translate the following text the way it should be read, respecting compound words. Omit particles and other symbols. For japanese, translate each word with the format as: [original text], [hiragana], [romaji]\ndefinition 1, definition 2, definition 3. In other languages, format as: [original text], [transliteration (if applicable)]\n definition 1, definition 2, definition 3. For each word, provide the best possible translations according to the context of the text, with the most accurate at the top of the definitions list."
+                    "content": "You are a helpful translator. Analyze and translate the following text the way it should be read, respecting compound words. Never read this from the text: grammar particles, irrelevant symbols, or words in the language you are translating to, since we don't need to translate that. Provide the most accurate translations according to the context of the text. For translating japanese, translate each word with the format: original text, hiragana, romaji\ndefinition 1, definition 2, definition 3\n\n. For other languages, format as: original text, original text, transliteration\n definition 1, definition 2, definition 3\n\n. Don't add any additional characters to your response, only provide the content as I specified."
                 ],
                 [
                     "role": "user",
@@ -89,7 +88,7 @@ struct PDFKitView: UIViewRepresentable {
                    let message = choices.first?["message"] as? [String: Any],
                    let content = message["content"] as? String {
                     // Process the translated content
-                    let translatedWords = parseTranslatedContent(content, sourceLanguage: sourceLanguage)
+                    let translatedWords = parseTranslatedContent(content)
                     DispatchQueue.main.async {
                         self.translatedWords = translatedWords
                     }
@@ -101,40 +100,54 @@ struct PDFKitView: UIViewRepresentable {
         task.resume()
     }
 
-    private func parseTranslatedContent(_ content: String, sourceLanguage: Language) -> [TranslatedWord] {
+    private func parseTranslatedContent(_ content: String) -> [TranslatedWord] {
         var translatedWords: [TranslatedWord] = []
-        let entries = content.components(separatedBy: "\n\n") // Split into individual word entries
-
+        
+        //Testings
+        print(content)
+        
+        // Split into individual entries based on double newlines
+        // Format: OriginalText, transliteration (or hiragana for JP), romaji (if applicable) \n
+                // definition 1, definition 2, definition 3 \n\n
+        
+        let entries = content.components(separatedBy: "\n\n") //each entry is a different word
+        
         for entry in entries {
             if entry.isEmpty { continue }
-
+            
             // Split the entry into lines
             let lines = entry.components(separatedBy: "\n")
             guard lines.count >= 2 else { continue }
-
-            // Parse the first line: [original text], [hiragana], [romaji]
+            
+            // Parse the first line: [original text], [transliteration], [romaji (if applicable)]
             let wordInfo = lines[0].components(separatedBy: ", ")
+            
+            // Japanese format: [original text], [hiragana], [romaji]
             guard wordInfo.count >= 3 else { continue }
-
+            
             let originalText = wordInfo[0]
-            let transliteration = wordInfo[1] // Hiragana
-            let romaji = wordInfo[2] // Romaji
-
+            var transliteration = wordInfo[1]
+            let romaji = wordInfo[2]
+            
+            //Remove repeated [original text] for languages other than japanese
+            if originalText == transliteration {
+                transliteration = ""
+            }
+            
             // Parse the second line: Definition 1, Definition 2, Definition 3
             let definitions = lines[1].components(separatedBy: ", ")
                 .map { $0.replacingOccurrences(of: "^[0-9]+\\. ", with: "", options: .regularExpression) }
-
+            
             // Create a TranslatedWord object
             let word = TranslatedWord(
                 originalText: originalText,
                 transliteration: transliteration,
                 romaji: romaji,
-                definitions: definitions,
-                language: sourceLanguage
+                definitions: definitions
             )
             translatedWords.append(word)
         }
-
+        
         return translatedWords
     }
 }

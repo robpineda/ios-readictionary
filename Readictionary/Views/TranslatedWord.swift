@@ -13,7 +13,6 @@ struct TranslatedWord: Identifiable {
     let transliteration: String? // Transliteration (e.g., hiragana for Japanese)
     let romaji: String? // Romaji (for Japanese)
     let definitions: [String] // List of translations in the target language
-    let language: Language // The source language
 }
 
 enum Language: String, CaseIterable {

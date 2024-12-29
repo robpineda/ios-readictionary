@@ -13,7 +13,6 @@ struct ReadingView: View {
     @State private var isDragging = false
     @State private var highlightedWord: String?
     @State private var translatedWords: [TranslatedWord] = []
-    @State private var sourceLanguage: Language = .japanese // Default to Japanese
     @State private var targetLanguage: Language = .english // Default to English
 
     var body: some View {
@@ -21,13 +20,6 @@ struct ReadingView: View {
             VStack(spacing: 0) {
                 // Language Picker
                 HStack {
-                    Picker("Source Language", selection: $sourceLanguage) {
-                        ForEach(Language.allCases, id: \.self) { language in
-                            Text(language.rawValue).tag(language)
-                        }
-                    }
-                    .pickerStyle(MenuPickerStyle())
-
                     Picker("Target Language", selection: $targetLanguage) {
                         ForEach(Language.allCases, id: \.self) { language in
                             Text(language.rawValue).tag(language)
@@ -42,7 +34,6 @@ struct ReadingView: View {
                     PDFKitView(
                         url: fileURL,
                         translatedWords: $translatedWords,
-                        sourceLanguage: sourceLanguage,
                         targetLanguage: targetLanguage
                     )
                     .frame(height: geometry.size.height - dictionaryViewHeight)

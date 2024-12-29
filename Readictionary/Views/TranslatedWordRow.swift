@@ -13,23 +13,22 @@ struct TranslatedWordRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Display the original word, hiragana, and romaji
-            if let transliteration = word.transliteration, let romaji = word.romaji {
-                Text("\(word.originalText), \(transliteration), \(romaji)")
-                    .font(.headline)
-            } else if let transliteration = word.transliteration {
-                Text("\(word.originalText), \(transliteration)")
+            // Display the original word and transliteration (if applicable)
+            if !word.transliteration!.isEmpty {
+                // If transliteration is not empty, display it
+                Text("\(word.originalText), \(word.transliteration!), \(word.romaji ?? "")")
                     .font(.headline)
             } else {
-                Text(word.originalText)
+                // If transliteration is empty, skip it
+                Text("\(word.originalText), \(word.romaji ?? "")")
                     .font(.headline)
             }
 
             // Display definitions
             if !word.definitions.isEmpty {
-                            Text(word.definitions.joined(separator: ", "))
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                Text(word.definitions.joined(separator: ", "))
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
             }
         }
         .padding(.vertical, 4)
