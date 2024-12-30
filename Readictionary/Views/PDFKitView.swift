@@ -103,51 +103,70 @@ struct PDFKitView: UIViewRepresentable {
     private func parseTranslatedContent(_ content: String) -> [TranslatedWord] {
         var translatedWords: [TranslatedWord] = []
         
-        //Testings
         print(content)
         
-        // Split into individual entries based on double newlines
-        // Format: OriginalText, transliteration (or hiragana for JP), romaji (if applicable) \n
-                // definition 1, definition 2, definition 3 \n\n
+        // Split the content into individual lines
+        let lines = content.components(separatedBy: "\n")
         
-        let entries = content.components(separatedBy: "\n\n") //each entry is a different word
+        // Temporary variables to store the current word entry
+        var currentWordInfo: String?
+        var currentDefinitions: String?
         
-        for entry in entries {
-            if entry.isEmpty { continue }
-            
-            // Split the entry into lines
-            let lines = entry.components(separatedBy: "\n")
-            guard lines.count >= 2 else { continue }
-            
-            // Parse the first line: [original text], [transliteration], [romaji (if applicable)]
-            let wordInfo = lines[0].components(separatedBy: ", ")
-            
-            // Japanese format: [original text], [hiragana], [romaji]
-            guard wordInfo.count >= 3 else { continue }
-            
-            let originalText = wordInfo[0]
-            var transliteration = wordInfo[1]
-            let romaji = wordInfo[2]
-            
-            //Remove repeated [original text] for languages other than japanese
-            if originalText == transliteration {
-                transliteration = ""
+        for line in lines {
+            if line.isEmpty {
+                // If the line is empty, it indicates the end of a word entry
+                if let wordInfo = currentWordInfo, let definitions = currentDefinitions {
+                    // Parse the word entry
+                    if let word = parseWordEntry(wordInfo: wordInfo, definitions: definitions) {
+                        translatedWords.append(word)
+                    }
+                }
+                // Reset the temporary variables
+                currentWordInfo = nil
+                currentDefinitions = nil
+            } else if currentWordInfo == nil {
+                // If currentWordInfo is nil, this line is the word info line
+                currentWordInfo = line
+            } else {
+                // If currentWordInfo is not nil, this line is the definitions line
+                currentDefinitions = line
             }
-            
-            // Parse the second line: Definition 1, Definition 2, Definition 3
-            let definitions = lines[1].components(separatedBy: ", ")
-                .map { $0.replacingOccurrences(of: "^[0-9]+\\. ", with: "", options: .regularExpression) }
-            
-            // Create a TranslatedWord object
-            let word = TranslatedWord(
-                originalText: originalText,
-                transliteration: transliteration,
-                romaji: romaji,
-                definitions: definitions
-            )
-            translatedWords.append(word)
+        }
+        
+        // Handle the last word entry (if any)
+        if let wordInfo = currentWordInfo, let definitions = currentDefinitions {
+            if let word = parseWordEntry(wordInfo: wordInfo, definitions: definitions) {
+                translatedWords.append(word)
+            }
         }
         
         return translatedWords
+    }
+
+    private func parseWordEntry(wordInfo: String, definitions: String) -> TranslatedWord? {
+        // Parse the word info line: [original text], [transliteration], [romaji (if applicable)]
+        let wordInfoComponents = wordInfo.components(separatedBy: ", ")
+        guard wordInfoComponents.count >= 3 else { return nil }
+        
+        let originalText = wordInfoComponents[0]
+        var transliteration = wordInfoComponents[1]
+        let romaji = wordInfoComponents[2]
+        
+        // Remove repeated [original text] for languages other than Japanese
+        if originalText == transliteration {
+            transliteration = ""
+        }
+        
+        // Parse the definitions line: Definition 1, Definition 2, Definition 3
+        let definitionsArray = definitions.components(separatedBy: ", ")
+            .map { $0.replacingOccurrences(of: "^[0-9]+\\. ", with: "", options: .regularExpression) }
+        
+        // Create a TranslatedWord object
+        return TranslatedWord(
+            originalText: originalText,
+            transliteration: transliteration,
+            romaji: romaji,
+            definitions: definitionsArray
+        )
     }
 }
