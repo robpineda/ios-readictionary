@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PDFKit
+import Combine
 
 struct PDFKitView: UIViewRepresentable {
     let url: URL
@@ -49,18 +50,18 @@ struct PDFKitView: UIViewRepresentable {
 
         // Define the request body
         let requestBody: [String: Any] = [
-            "model": "deepseek-chat", // Specify the model
+            "model": "deepseek-chat",
             "messages": [
                 [
                     "role": "system",
-                    "content": "You are a helpful translator. Analyze and translate the following text the way it should be read, respecting compound words. Never read this from the text: grammar particles, irrelevant symbols, or words in the language you are translating to, since we don't need to translate that. Provide the most accurate translations according to the context of the text. For translating japanese, translate each word with the format: original text, hiragana, romaji\ndefinition 1, definition 2, definition 3\n\n. For other languages, format as: original text, original text, transliteration\n definition 1, definition 2, definition 3\n\n. Don't add any additional characters to your response, only provide the content as I specified."
+                    "content": "You are a helpful translator. Analyze and translate the following text the way it should be read, respecting compound words. Never process this this from the text: grammar particles, irrelevant symbols, or words in the language you are translating to. Translate all the words even if they appear multiple times. Provide the most accurate translations according to the context of the text. For translating japanese, translate each word with the format: original text, hiragana, romaji\ndefinition 1, definition 2, definition 3\n\n. For other languages, format as: original text, original text, transliteration\n definition 1, definition 2, definition 3\n\n. Don't add any additional characters to your response, and always respect the format I gave you."
                 ],
                 [
                     "role": "user",
                     "content": text // The text to translate
                 ]
             ],
-            "stream": false // Set to true if you want a stream response
+            "stream": true
         ]
 
         do {
@@ -70,48 +71,103 @@ struct PDFKitView: UIViewRepresentable {
             return
         }
 
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Error: \(error)")
-                return
-            }
+        // Create a URLSession with a delegate to handle streaming
+        let session = URLSession(configuration: .default, delegate: StreamingDelegate(translatedWords: $translatedWords), delegateQueue: nil)
+        let task = session.dataTask(with: request)
+        task.resume()
+    }
+}
 
-            guard let data = data else {
-                print("No data received")
-                return
-            }
+// MARK: - StreamingDelegate
+class StreamingDelegate: NSObject, URLSessionDataDelegate {
+    @Binding var translatedWords: [TranslatedWord]
+    private var buffer = Data()
+    private var accumulatedContent = "" // To accumulate the incremental content
+    private let serialQueue = DispatchQueue(label: "com.readictionary.streaming") // Serial queue for processing
 
-            do {
-                // Parse the response
-                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                   let choices = json["choices"] as? [[String: Any]],
-                   let message = choices.first?["message"] as? [String: Any],
-                   let content = message["content"] as? String {
-                    // Process the translated content
-                    let translatedWords = parseTranslatedContent(content)
-                    DispatchQueue.main.async {
-                        self.translatedWords = translatedWords
+    init(translatedWords: Binding<[TranslatedWord]>) {
+        self._translatedWords = translatedWords
+    }
+
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        // Append the new data to the buffer
+        buffer.append(data)
+
+        // Process the buffer on a serial queue to avoid race conditions
+        serialQueue.async {
+            if let string = String(data: self.buffer, encoding: .utf8) {
+                let lines = string.components(separatedBy: "\n\n") // Split by double newlines
+                for line in lines {
+                    if line.isEmpty { continue }
+
+                    // Remove the "data: " prefix
+                    guard line.hasPrefix("data: ") else { continue }
+                    let jsonString = String(line.dropFirst(6)) // Remove "data: "
+
+                    // Parse the JSON string
+                    if let jsonData = jsonString.data(using: .utf8),
+                       let json = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any],
+                       let choices = json["choices"] as? [[String: Any]],
+                       let delta = choices.first?["delta"] as? [String: Any],
+                       let content = delta["content"] as? String {
+                        // Accumulate the content
+                        self.accumulatedContent += content
+
+                        // If the content ends with "\n\n", it indicates the end of a word entry
+                        if self.accumulatedContent.hasSuffix("\n\n") {
+                            // Process the accumulated content
+                            let newWords = self.parseTranslatedContent(self.accumulatedContent)
+                            print("New Words: \(newWords)") // Debugging
+
+                            // Update the UI on the main thread
+                            DispatchQueue.main.async {
+                                self.translatedWords.append(contentsOf: newWords)
+                            }
+
+                            // Reset the accumulated content
+                            self.accumulatedContent = ""
+                        }
                     }
                 }
-            } catch {
-                print("Error decoding response: \(error)")
+
+                // Clear the buffer
+                self.buffer = Data()
             }
         }
-        task.resume()
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        // Handle the end of the streaming response
+        serialQueue.async {
+            // Check if there's any remaining content in accumulatedContent
+            if !self.accumulatedContent.isEmpty {
+                // Process the remaining content
+                let newWords = self.parseTranslatedContent(self.accumulatedContent)
+                print("Final Words: \(newWords)") // Debugging
+
+                // Update the UI on the main thread
+                DispatchQueue.main.async {
+                    self.translatedWords.append(contentsOf: newWords)
+                }
+
+                // Reset the accumulated content
+                self.accumulatedContent = ""
+            }
+        }
     }
 
     private func parseTranslatedContent(_ content: String) -> [TranslatedWord] {
         var translatedWords: [TranslatedWord] = []
-        
-        print(content)
-        
+
+        print("Parsing Content: \(content)") // Debugging
+
         // Split the content into individual lines
         let lines = content.components(separatedBy: "\n")
-        
+
         // Temporary variables to store the current word entry
         var currentWordInfo: String?
         var currentDefinitions: String?
-        
+
         for line in lines {
             if line.isEmpty {
                 // If the line is empty, it indicates the end of a word entry
@@ -132,14 +188,14 @@ struct PDFKitView: UIViewRepresentable {
                 currentDefinitions = line
             }
         }
-        
+
         // Handle the last word entry (if any)
         if let wordInfo = currentWordInfo, let definitions = currentDefinitions {
             if let word = parseWordEntry(wordInfo: wordInfo, definitions: definitions) {
                 translatedWords.append(word)
             }
         }
-        
+
         return translatedWords
     }
 
@@ -147,20 +203,20 @@ struct PDFKitView: UIViewRepresentable {
         // Parse the word info line: [original text], [transliteration], [romaji (if applicable)]
         let wordInfoComponents = wordInfo.components(separatedBy: ", ")
         guard wordInfoComponents.count >= 3 else { return nil }
-        
+
         let originalText = wordInfoComponents[0]
         var transliteration = wordInfoComponents[1]
         let romaji = wordInfoComponents[2]
-        
-        // Remove repeated [original text] for languages other than Japanese
+
+        // Remove repeated "[original text], [original text]" for languages other than Japanese
         if originalText == transliteration {
             transliteration = ""
         }
-        
+
         // Parse the definitions line: Definition 1, Definition 2, Definition 3
         let definitionsArray = definitions.components(separatedBy: ", ")
             .map { $0.replacingOccurrences(of: "^[0-9]+\\. ", with: "", options: .regularExpression) }
-        
+
         // Create a TranslatedWord object
         return TranslatedWord(
             originalText: originalText,
