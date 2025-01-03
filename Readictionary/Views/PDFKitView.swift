@@ -22,7 +22,19 @@ struct PDFKitView: UIViewRepresentable {
         // Extract text from the PDF
         if let pdfDocument = pdfView.document {
             let extractedText = extractText(from: pdfDocument)
-            translateText(extractedText, targetLanguage: targetLanguage)
+
+            // Generate cache key based on the document's content
+            let cacheKey = CacheManager.shared.cacheKey(for: extractedText)
+
+            // Check if cached data exists
+                if let cachedWords = CacheManager.shared.loadTranslatedWords(for: cacheKey) {
+                    DispatchQueue.main.async {
+                        self.translatedWords = cachedWords
+                    }
+                } else {
+                    // No cached data, call the API
+                    translateText(extractedText, targetLanguage: targetLanguage)
+                }
         }
 
         return pdfView
@@ -72,8 +84,8 @@ struct PDFKitView: UIViewRepresentable {
         }
 
         // Create a URLSession with a delegate to handle streaming
-        let session = URLSession(configuration: .default, delegate: StreamingDelegate(translatedWords: $translatedWords), delegateQueue: nil)
-        let task = session.dataTask(with: request)
-        task.resume()
+           let session = URLSession(configuration: .default, delegate: StreamingDelegate(translatedWords: $translatedWords, extractedText: text), delegateQueue: nil)
+           let task = session.dataTask(with: request)
+           task.resume()
     }
 }

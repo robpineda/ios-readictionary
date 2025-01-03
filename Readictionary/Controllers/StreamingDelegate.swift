@@ -14,10 +14,12 @@ class StreamingDelegate: NSObject, URLSessionDataDelegate {
     private var buffer = Data()
     private var accumulatedContent = "" // To accumulate the incremental content
     private let serialQueue = DispatchQueue(label: "com.readictionary.streaming") // Serial queue for processing
-
-    init(translatedWords: Binding<[TranslatedWord]>) {
-        self._translatedWords = translatedWords
-    }
+    private let extractedText: String // Store the extracted text
+    
+    init(translatedWords: Binding<[TranslatedWord]>, extractedText: String) {
+            self._translatedWords = translatedWords
+            self.extractedText = extractedText
+        }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         // Append the new data to the buffer
@@ -79,6 +81,10 @@ class StreamingDelegate: NSObject, URLSessionDataDelegate {
                 DispatchQueue.main.async {
                     self.translatedWords.append(contentsOf: newWords)
                 }
+
+                // Save the translated words to cache
+                let cacheKey = CacheManager.shared.cacheKey(for: self.extractedText)
+                CacheManager.shared.saveTranslatedWords(self.translatedWords, for: cacheKey)
 
                 // Reset the accumulated content
                 self.accumulatedContent = ""
@@ -154,5 +160,12 @@ class StreamingDelegate: NSObject, URLSessionDataDelegate {
             romaji: romaji,
             definitions: definitionsArray
         )
+    }
+
+    // Helper function to get the document URL (if available)
+    private func getDocumentURL() -> URL? {
+        // Implement logic to retrieve the document URL if needed
+        // For example, you can store the document URL in the StreamingDelegate or pass it through the context
+        return nil
     }
 }

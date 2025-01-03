@@ -7,8 +7,8 @@
 
 import Foundation
 
-struct TranslatedWord: Identifiable {
-    let id = UUID()
+struct TranslatedWord: Identifiable, Codable {
+    var id = UUID()
     let originalText: String // The original word in the source language
     let transliteration: String? // Transliteration (e.g., hiragana for Japanese)
     let romaji: String? // Romaji (for Japanese)
