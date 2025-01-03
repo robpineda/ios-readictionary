@@ -19,7 +19,7 @@ class StreamingDelegate: NSObject, URLSessionDataDelegate {
     init(translatedWords: Binding<[TranslatedWord]>, extractedText: String) {
             self._translatedWords = translatedWords
             self.extractedText = extractedText
-        }
+    }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         // Append the new data to the buffer

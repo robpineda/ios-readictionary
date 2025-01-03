@@ -7,12 +7,22 @@
 
 import Foundation
 
-struct TranslatedWord: Identifiable, Codable {
+struct TranslatedWord: Identifiable, Codable, Hashable { // Add Hashable
     var id = UUID()
-    let originalText: String // The original word in the source language
-    let transliteration: String? // Transliteration (e.g., hiragana for Japanese)
-    let romaji: String? // Romaji (for Japanese)
-    let definitions: [String] // List of translations in the target language
+    let originalText: String
+    let transliteration: String?
+    let romaji: String?
+    let definitions: [String]
+
+    // Implement Hashable
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id) // Use the unique ID for hashing
+    }
+
+    // Implement Equatable (required by Hashable)
+    static func == (lhs: TranslatedWord, rhs: TranslatedWord) -> Bool {
+        return lhs.id == rhs.id // Compare words by their unique ID
+    }
 }
 
 enum Language: String, CaseIterable {

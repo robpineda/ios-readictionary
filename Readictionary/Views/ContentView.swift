@@ -8,22 +8,24 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var translatedWords: [TranslatedWord] = [] // State for translated words
+    @State private var targetLanguage: Language = .english // Default target language
+    
     var body: some View {
-        VStack {
-            Text("Reading View")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.gray.opacity(0.2))
-            Divider()
-            Text("Dictionary View")
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.gray.opacity(0.2))
-        }
-        .padding()
-    }
-}
+        TabView {
+            // Tab 1: PDF Functionality
+            DocumentListView()
+                .tabItem {
+                    Image(systemName: "doc")
+                    Text("PDF")
+                }
 
-struct ContentView_Previews: PreviewProvider {
-    static var previews: some View {
-        ContentView()
+            // Tab 2: Text Translation Functionality
+            TextModeListView(translatedWords: $translatedWords, targetLanguage: targetLanguage)
+                .tabItem {
+                    Image(systemName: "text.bubble")
+                    Text("Text")
+                }
+        }
     }
 }

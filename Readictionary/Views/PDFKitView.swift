@@ -27,14 +27,20 @@ struct PDFKitView: UIViewRepresentable {
             let cacheKey = CacheManager.shared.cacheKey(for: extractedText)
 
             // Check if cached data exists
-                if let cachedWords = CacheManager.shared.loadTranslatedWords(for: cacheKey) {
-                    DispatchQueue.main.async {
-                        self.translatedWords = cachedWords
-                    }
-                } else {
-                    // No cached data, call the API
-                    translateText(extractedText, targetLanguage: targetLanguage)
+            if let cachedWords = CacheManager.shared.loadTranslatedWords(for: cacheKey) {
+                DispatchQueue.main.async {
+                    self.translatedWords = cachedWords
                 }
+            } else {
+                // No cached data, call the API
+                let translationService = TranslationService()
+                translationService.translateText(
+                    extractedText,
+                    targetLanguage: targetLanguage,
+                    translatedWords: $translatedWords,
+                    extractedText: extractedText
+                )
+            }
         }
 
         return pdfView
@@ -50,42 +56,5 @@ struct PDFKitView: UIViewRepresentable {
             }
         }
         return fullText
-    }
-
-    private func translateText(_ text: String, targetLanguage: Language) {
-        let apiKey = Config.apiKey
-        let url = URL(string: "https://api.deepseek.com/v1/chat/completions")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
-
-        // Define the request body
-        let requestBody: [String: Any] = [
-            "model": "deepseek-chat",
-            "messages": [
-                [
-                    "role": "system",
-                    "content": "You are a helpful translator. Analyze and translate the following text the way it should be read, respecting compound words. Never process this this from the text: grammar particles, irrelevant symbols, or words in the language you are translating to. Translate all the words even if they appear multiple times. Provide the most accurate translations according to the context of the text. For translating japanese, translate each word with the format: original text, hiragana, romaji\ndefinition 1, definition 2, definition 3\n\n. For other languages, format as: original text, original text, transliteration\n definition 1, definition 2, definition 3\n\n. Don't add any additional characters to your response, and always respect the format I gave you."
-                ],
-                [
-                    "role": "user",
-                    "content": text // The text to translate
-                ]
-            ],
-            "stream": true
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody, options: [])
-        } catch {
-            print("Error encoding request body: \(error)")
-            return
-        }
-
-        // Create a URLSession with a delegate to handle streaming
-           let session = URLSession(configuration: .default, delegate: StreamingDelegate(translatedWords: $translatedWords, extractedText: text), delegateQueue: nil)
-           let task = session.dataTask(with: request)
-           task.resume()
     }
 }

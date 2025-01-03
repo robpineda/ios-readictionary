@@ -16,7 +16,7 @@ struct ReadictionaryApp: App {
     
     var body: some Scene {
         WindowGroup {
-            DocumentListView()
+            ContentView()
         }
     }
 }

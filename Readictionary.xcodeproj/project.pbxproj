@@ -16,6 +16,11 @@
 		222EB29F2D1EBB2900524C55 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222EB29E2D1EBB2900524C55 /* DocumentPicker.swift */; };
 		226E6EF42D230FBB00B4A33A /* StreamingDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226E6EF32D230FBB00B4A33A /* StreamingDelegate.swift */; };
 		226E6EF72D27C20100B4A33A /* CacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226E6EF62D27C20100B4A33A /* CacheManager.swift */; };
+		226E6EF92D27EEC700B4A33A /* TextModeListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226E6EF82D27EEC700B4A33A /* TextModeListView.swift */; };
+		226E6EFB2D27EEEB00B4A33A /* TextModeInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226E6EFA2D27EEEB00B4A33A /* TextModeInputView.swift */; };
+		226E6EFD2D27EF0A00B4A33A /* TextRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226E6EFC2D27EF0A00B4A33A /* TextRecord.swift */; };
+		226E6EFF2D27EFE100B4A33A /* TextModeDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226E6EFE2D27EFE100B4A33A /* TextModeDetailView.swift */; };
+		227F492F2D285A710068FE96 /* TranslationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227F492E2D285A710068FE96 /* TranslationService.swift */; };
 		22934B332D1ED7F40059681F /* DictionaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B322D1ED7F40059681F /* DictionaryView.swift */; };
 		22934B372D1ED8510059681F /* PDFKitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B362D1ED8510059681F /* PDFKitView.swift */; };
 		22934B3E2D202F650059681F /* TranslatedWord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22934B3D2D202F650059681F /* TranslatedWord.swift */; };
@@ -34,6 +39,11 @@
 		222EB29E2D1EBB2900524C55 /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
 		226E6EF32D230FBB00B4A33A /* StreamingDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamingDelegate.swift; sourceTree = "<group>"; };
 		226E6EF62D27C20100B4A33A /* CacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CacheManager.swift; sourceTree = "<group>"; };
+		226E6EF82D27EEC700B4A33A /* TextModeListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextModeListView.swift; sourceTree = "<group>"; };
+		226E6EFA2D27EEEB00B4A33A /* TextModeInputView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextModeInputView.swift; sourceTree = "<group>"; };
+		226E6EFC2D27EF0A00B4A33A /* TextRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextRecord.swift; sourceTree = "<group>"; };
+		226E6EFE2D27EFE100B4A33A /* TextModeDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextModeDetailView.swift; sourceTree = "<group>"; };
+		227F492E2D285A710068FE96 /* TranslationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationService.swift; sourceTree = "<group>"; };
 		22934B322D1ED7F40059681F /* DictionaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictionaryView.swift; sourceTree = "<group>"; };
 		22934B362D1ED8510059681F /* PDFKitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFKitView.swift; sourceTree = "<group>"; };
 		22934B3D2D202F650059681F /* TranslatedWord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslatedWord.swift; sourceTree = "<group>"; };
@@ -100,6 +110,9 @@
 				22934B322D1ED7F40059681F /* DictionaryView.swift */,
 				22934B362D1ED8510059681F /* PDFKitView.swift */,
 				22934B3F2D202FA70059681F /* TranslatedWordRow.swift */,
+				226E6EF82D27EEC700B4A33A /* TextModeListView.swift */,
+				226E6EFA2D27EEEB00B4A33A /* TextModeInputView.swift */,
+				226E6EFE2D27EFE100B4A33A /* TextModeDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -109,6 +122,7 @@
 			children = (
 				22934B432D20522B0059681F /* Config.swift */,
 				226E6EF62D27C20100B4A33A /* CacheManager.swift */,
+				227F492E2D285A710068FE96 /* TranslationService.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -125,6 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				22934B3D2D202F650059681F /* TranslatedWord.swift */,
+				226E6EFC2D27EF0A00B4A33A /* TextRecord.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -203,6 +218,8 @@
 			files = (
 				22934B372D1ED8510059681F /* PDFKitView.swift in Sources */,
 				22934B402D202FA70059681F /* TranslatedWordRow.swift in Sources */,
+				226E6EFB2D27EEEB00B4A33A /* TextModeInputView.swift in Sources */,
+				226E6EF92D27EEC700B4A33A /* TextModeListView.swift in Sources */,
 				222EB29B2D1EB90C00524C55 /* DocumentListView.swift in Sources */,
 				222EB29D2D1EBA0300524C55 /* ReadingView.swift in Sources */,
 				226E6EF72D27C20100B4A33A /* CacheManager.swift in Sources */,
@@ -211,7 +228,10 @@
 				222EB29F2D1EBB2900524C55 /* DocumentPicker.swift in Sources */,
 				22934B3E2D202F650059681F /* TranslatedWord.swift in Sources */,
 				22934B442D20522B0059681F /* Config.swift in Sources */,
+				226E6EFF2D27EFE100B4A33A /* TextModeDetailView.swift in Sources */,
 				22934B332D1ED7F40059681F /* DictionaryView.swift in Sources */,
+				226E6EFD2D27EF0A00B4A33A /* TextRecord.swift in Sources */,
+				227F492F2D285A710068FE96 /* TranslationService.swift in Sources */,
 				222EB28D2D1E9BD200524C55 /* ReadictionaryApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

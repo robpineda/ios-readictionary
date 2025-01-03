@@ -72,4 +72,37 @@ class CacheManager {
             print("Failed to invalidate cache: \(error)")
         }
     }
+    
+    // Save text records to cache
+        func saveTextRecords(_ records: [TextRecord], for cacheKey: String) {
+            let cacheFile = cacheDirectory.appendingPathComponent("text_\(cacheKey).json")
+
+            do {
+                let data = try JSONEncoder().encode(records)
+                try data.write(to: cacheFile)
+                print("Saved text records for \(cacheKey) at \(cacheFile.path)")
+            } catch {
+                print("Failed to save text records: \(error)")
+            }
+        }
+
+        // Load text records from cache
+        func loadTextRecords(for cacheKey: String) -> [TextRecord]? {
+            let cacheFile = cacheDirectory.appendingPathComponent("text_\(cacheKey).json")
+
+            if !FileManager.default.fileExists(atPath: cacheFile.path) {
+                print("Text records cache file does not exist at \(cacheFile.path)")
+                return nil
+            }
+
+            do {
+                let data = try Data(contentsOf: cacheFile)
+                let records = try JSONDecoder().decode([TextRecord].self, from: data)
+                print("Loaded text records for \(cacheKey) from \(cacheFile.path)")
+                return records
+            } catch {
+                print("Failed to load text records: \(error)")
+                return nil
+            }
+        }
 }
